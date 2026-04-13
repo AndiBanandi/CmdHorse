@@ -4,10 +4,8 @@ GOTO EOF_GOMAIN
 
 ::TODO:
 ::Keep records for each horse (wins, races)
-::Prize (carrot, apple, etc) - listed before race
-::Horse stats: SPD, STM, MOT, ERL, MID, LAT - avg 100
-::Horse abilities: TAZ, TPT, CHT, FLY, APL, DRT, TRF
-::
+::Horse stats: SPD, STM, MOT (speed, stamina, and motivation) - default to 100
+::Horse abilities: FLY, APL, DRT, etc
 
 CALL :RACE
 
@@ -17,8 +15,6 @@ EXIT /B 0
 
 ::vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 :RACE
-::One race - will have a main loop seperate from this
-
 color 07
 CLS
 ECHO Racers:
@@ -41,8 +37,6 @@ IF %HORSE4NAM%==%HORSE1NAM% GOTO SELECTHORSE4
 IF %HORSE4NAM%==%HORSE2NAM% GOTO SELECTHORSE4
 IF %HORSE4NAM%==%HORSE3NAM% GOTO SELECTHORSE4
 ECHO %HORSE4NAM% %HORSE4CHAR% %HORSE4FULLNAME%
-
-
 
 
 SET FIELDS=GGGGGGGGGGGGGGGDDDDDDDDCCCCCCWWWWVH
@@ -80,7 +74,10 @@ ECHO Prize: %PRIZENAME%
 
 timeout /T 5
 
-::Grass, Dirt, Clay, Void, Hell, Water
+::Terminal colors change to reflect the field
+::These are optimized for the display on the
+::ancient laptop at work where I dick around with this,
+::so they may not look ideal on other displays
 IF %FIELDCHAR% EQU G COLOR 2A
 IF %FIELDCHAR% EQU D COLOR 2E
 IF %FIELDCHAR% EQU C COLOR 27
@@ -88,6 +85,7 @@ IF %FIELDCHAR% EQU W COLOR 9B
 IF %FIELDCHAR% EQU V COLOR 0D
 IF %FIELDCHAR% EQU H COLOR C4
 
+::Stats are a WIP - they can be initialized but they don't do anything
 ::CALL :INITIALIZEHORSESTATS %HORSE1NAM% H1ABL1 H1ABL2 H1SPD H1STM H1MOT %FIELDCHAR%
 ::CALL :INITIALIZEHORSESTATS %HORSE2NAM% H2ABL1 H2ABL2 H2SPD H2STM H2MOT %FIELDCHAR%
 ::CALL :INITIALIZEHORSESTATS %HORSE3NAM% H3ABL1 H3ABL2 H3SPD H3STM H3MOT %FIELDCHAR%
@@ -106,6 +104,7 @@ CALL :TICKLANE HORSE2POS
 CALL :TICKLANE HORSE3POS
 CALL :TICKLANE HORSE4POS
 
+::For unknown reasons, the parameters don't get properly passed into this function
 ::CALL :TICKLANE_WITHSTATS %HORSE1NAM% HORSE1POS %H1ABL1% %H1ABL2% H1SPD H1STM H1MOT
 ::CALL :TICKLANE_WITHSTATS %HORSE1NAM% HORSE2POS %H2ABL1% %H2ABL2% H2SPD H2STM H2MOT
 ::CALL :TICKLANE_WITHSTATS %HORSE1NAM% HORSE3POS %H3ABL1% %H3ABL2% H3SPD H3STM H3MOT
@@ -113,6 +112,7 @@ CALL :TICKLANE HORSE4POS
 ::Usage: CALL :TICKLANE_WITHSTATS HORSENAM *POS ABL1 ABL2 *SPD *STM *MOT
 
 
+::We render each lane to a string, then print them all at once to minimize flickering
 CALL :RENDERLANE %HORSE1POS% %HORSE1CHAR% %HORSE1NAM% %FINISH% LANE1
 CALL :RENDERLANE %HORSE2POS% %HORSE2CHAR% %HORSE2NAM% %FINISH% LANE2
 CALL :RENDERLANE %HORSE3POS% %HORSE3CHAR% %HORSE3NAM% %FINISH% LANE3
@@ -146,7 +146,7 @@ EXIT /B 0
 :SELECTHORSE
 ::Usage: CALL :SELECTHORSE *HORSEARRAY *HORSESHORTNAME *HORSECHAR *HORSEFULLNAME
 SETLOCAL
-SET HORSEPOOL=AMR,SUN,DRM,STP,PEP,NUG,LAK,TRX,URA,GOL,OOB,SUP,COM,FUZ,OLV,APH,IVW,PPB,MWT,CHK,MBL,JAD,DAZ,CXA,MST,VIN,OCT,CHY,PnW,WOU,DIF
+SET HORSEPOOL=AMR,SUN,DRM,STP,PEP,NUG,LAK,TRX,URA,GOL,OOB,SUP,COM,FUZ,OLV,APH,IVW,PPB,MWT,CHK,MBL,JAD,DAZ,CXA,MST,CHY,PnW,WOU,DIF
 CALL :STRLEN HORSEPOOL LEN
 SET /A POOLSIZE=(LEN+1)/4
 SET /A X=%RANDOM%%%%POOLSIZE%*4
@@ -162,7 +162,7 @@ IF %HORSENAM%==NUG SET HORSEARR=NUG N Nugget
 IF %HORSENAM%==LAK SET HORSEARR=LAK K Last Argument of Kings
 IF %HORSENAM%==TRX SET HORSEARR=TRX T Trixie
 IF %HORSENAM%==URA SET HORSEARR=URA U Haru Urara
-IF %HORSENAM%==GOL SET HORSEARR=GOL G Golden Ship
+IF %HORSENAM%==GOL SET HORSEARR=GOL G Gold Ship
 IF %HORSENAM%==OOB SET HORSEARR=OBL 0 Out Of Bounds
 IF %HORSENAM%==SUP SET HORSEARR=GOL s Superstitional Realism
 IF %HORSENAM%==COM SET HORSEARR=COM c Comely Material Morning
@@ -179,14 +179,12 @@ IF %HORSENAM%==JAD SET HORSEARR=JAD J Jadehoof
 IF %HORSENAM%==DAZ SET HORSEARR=DAZ Z Dazzleflash
 IF %HORSENAM%==CXA SET HORSEARR=CXA X Coxa
 IF %HORSENAM%==MST SET HORSEARR=MST $ Morning Star
-IF %HORSENAM%==VIN SET HORSEARR=VIN v Vinyl Scratch
-IF %HORSENAM%==OCT SET HORSEARR=OCT o Octavia Melody
 IF %HORSENAM%==HOP SET HORSEARR=HOP h Hopscotch
 IF %HORSENAM%==CHY SET HORSEARR=CHY y Cherry Berry
 IF %HORSENAM%==PnW SET HORSEARR=PnW B Pip and Whistle
 IF %HORSENAM%==WOU SET HORSEARR=WOU W The Weight of Understanding that Burdens Life
 IF %HORSENAM%==DIF SET HORSEARR=DIF D Desire In Flesh
-IF %HORSENAM%==TWI SET HORSEARR=TWI t Twinkle Sprinkle
+IF %HORSENAM%==??? SET HORSEARR=??? ? ???
 
 CALL SET "HORSECHAR=%%HORSEARR:~4,1%%"
 CALL :STRLEN HORSEARR LEN
@@ -199,6 +197,8 @@ CALL SET "HORSEFULLNAME=%%HORSEARR:~6,%LEN%%%"
 ::vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 :INITIALIZEHORSESTATS
 ::Usage: CALL :INITIALIZEHORSESTATS HORSENAM *ABL1 *ABL2 *SPD *STM *MOT FIELD
+::Horses have 100 in all stats by default, but may be assigned individual stats here
+::Each horse can have up to two abilities
 SETLOCAL
 SET HORSENAM=%~1
 SET SPD=100
@@ -221,13 +221,9 @@ SET ABILFLY=1 & IF NOT "%ABL1%"=="FLY" IF NOT "%ABL2%"=="FLY" SET ABILFLY=0
 
 IF %ABILDRT%==1 IF %FIELD%==D SET /A SPD*=1.25
 IF %ABILGRS%==1 IF %FIELD%==G SET /A SPD*=1.25
-
-::IF %FIELD% EQU W (
-::    IF %ABIL1% NEQ FLY IF %ABIL2% NEQ FLY SET /A SPD*=0.75
-::)
-::IF %FIELD% EQU W IF %ABIL1% NEQ FLY IF %ABIL2% NEQ FLY SET /A SPD*=0.75
-::IF %FIELD% EQU V IF %ABIL1% NEQ FLY IF %ABIL2% NEQ FLY SET /A STM*=0.75
-::IF %FIELD% EQU H IF %ABIL1% NEQ FLY IF %ABIL2% NEQ FLY SET /A MOT*=0.75
+IF %FIELD%==W IF NOT "%ABL1%"=="FLY" IF NOT "%ABL2%"=="FLY" IF NOT "ABL1"=="%SWM%" IF NOT "%ABL2%"=="SWM" SET /A SPD*=0.75
+IF %FIELD%==V IF NOT "%ABL1%"=="FLY" IF NOT "%ABL2%"=="FLY" SET /A STM*=0.75
+IF %FIELD%==H IF NOT "%ABL1%"=="FLY" IF NOT "%ABL2%"=="FLY" SET /A MOT*=0.75
 
 (ENDLOCAL & SET %~2=%ABL1%&set %~3=%ABL2%& SET %~4=%SPD%& SET %~5=%STM%& SET %~6=%MOT%)
 EXIT /B 0
@@ -237,7 +233,7 @@ EXIT /B 0
 ::vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 :TICKLANE
 ::Usage: CALL :TICKLANE *POS
-::This is where the running happens. Currently very simplistic, it will eventually account for different horses' unique abilities.
+::This is where the running happens. This version is simplistic but reliable.
 IF %RANDOM% LEQ 12000 set /A %~1+=1
 IF %RANDOM% LEQ  6000 set /A %~1+=1
 EXIT /B 0
@@ -246,7 +242,7 @@ EXIT /B 0
 ::vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 :TICKLANE_WITHSTATS
 ::Usage: CALL :TICKLANE *HORSENAM *POS ABL1 ABL2 *SPD *STM *MOT
-::Terrain modifiers are made beforehand
+::Terrain modifiers are made during initialization, so aren't needed here
 ::Why are the arguments not getting passed in properly?
 SETLOCAL
 SET HORSENAM=%~1
@@ -263,14 +259,13 @@ IF %RANDOM% LEQ %CHANCE1% SET /A POS += 1
 IF %RANDOM% LEQ %CHANCE2% SET /A POS += 1
 echo %HORSENAM% NEWPOS %POS%
 
-::TODO: STM is inverse chance to reduce SPD?, MOT is chance to increase SPD
-::SET /A STM-=1
-::IF %STM% LEQ 0 SET /A SPD-=1
+SET /A STM-=1
+IF %STM% LEQ 0 SET /A SPD-=1
 
-::SET /A MOTCHANCESTM=12000 * %MOT%
-::SET /A MOTCHANCESPD=6000 * %MOT%
-::IF %RANDOM% LEQ %MOTCHANCESTM% SET /A STM+=2
-::IF %RANDOM% LEQ %MOTCHANCESPD% SET /A SPD+=1
+SET /A MOTCHANCESTM=12000 * %MOT%
+SET /A MOTCHANCESPD=6000 * %MOT%
+IF %RANDOM% LEQ %MOTCHANCESTM% SET /A STM+=3
+IF %RANDOM% LEQ %MOTCHANCESPD% SET /A SPD+=2
 
 (ENDLOCAL & SET %~2=%POS% & SET %~5=%SPD% & SET %~6=%STM% & SET %~7=%MOT%)
 ::SET %~2=%POS% & SET %~5=%SPD% & SET %~6=%STM% & SET %~7=%MOT%
